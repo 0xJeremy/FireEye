@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="FireEye",
-    version="0.0.1",
+    version="0.1.0",
     author="Jeremy Kanovsky",
     author_email="kanovsky.jeremy@gmail.com",
     description="A video over TCP client",

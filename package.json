@@ -1,6 +1,6 @@
 {
   "name": "fireeye",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A video over TCP client",
   "main": "index.js",
   "scripts": {
@@ -25,9 +25,11 @@
   },
   "homepage": "https://github.com/0xJeremy/FireEye#readme",
   "dependencies": {
-    "express": "^4.17.1",
     "fs": "0.0.1-security",
-    "net": "^1.0.2",
+    "net": "^1.0.2"
+  },
+  "devDependencies": {
+    "express": "^4.17.1",
     "socket.io": "^2.2.0"
   }
 }

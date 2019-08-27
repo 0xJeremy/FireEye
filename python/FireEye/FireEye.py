@@ -1,7 +1,5 @@
 import socket
 from threading import Thread
-import base64
-import cv2
 from json import dumps as dictToJson
 from json import loads as jsonToDict
 
@@ -47,10 +45,9 @@ class FireEye(Thread):
 	def write(self, data):
 		self.client.send(data)
 
-	def writeImg(self, img):
-		success, encoded_img = cv2.imencode('.jpg', img)
+	def writeImg(self, data):
 		self.client.send('START_IMAGE'.encode())
-		self.client.send(base64.b64encode(encoded_img))
+		self.client.send(data)
 		self.client.send('END_IMAGE'.encode())
 
 	def exit(self):

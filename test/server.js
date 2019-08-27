@@ -42,21 +42,5 @@ app.get('/', function(req, res) {
 });
 
 socket.on('image', (data) => {
-	// console.log("Here's what I have")
-	// zlib.createUnzip(data, (err, result) => {
-	// 	if(err) {throw err}
-	// 	else {console.log(result); io.emit('image', result)}
-	// })
-	
-	// zlib.unzip(data, function(err, dezipped) {
-	// 	if(err) {
-	// 		throw err
-	// 	}
-	// 	else {
-	// 		console.log(dezipped.toString())
-	// 		console.log('From server')
- //        	io.emit('image', dezipped.toString());
-	// 	}
- //    });
  	io.emit('image', data);
 })

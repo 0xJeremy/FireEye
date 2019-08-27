@@ -8,12 +8,10 @@ function Socket(addr='127.0.0.1', port=12346) {
     this.net = require('net');
     this.socketpath = {
     	'port': port,
-    	'family': 'IPv6',
+    	'family': 'IPv',
     	'address': addr
     };
     this.msgBuffer = '';
-    this.imgBuffer = '';
-    this.imgFlag = false;
     this.listener = null;
 
     this.server = this.net.createServer((socket) => {
@@ -25,26 +23,20 @@ function Socket(addr='127.0.0.1', port=12346) {
         /////////////////////
 
         socket.on('data', (bytes) => {
-        	if(this.imgFlag) {
-        		this.imgBuffer += bytes;
-        	}
             this.msgBuffer += bytes.toString();
             try {
-            	var msg = this.msgBuffer;
-            	if(msg == 'stop') {
+            	if(this.msgBuffer == 'stop') {
             		this.listener.write(JSON.stringify({'stop': true}))
             	}
-            	if(msg == 'startImg') {
-            		this.imgBuffer = '';
-            		this.imgFlag = true;
+            	if(this.msgBuffer.includes('START_IMAGE')) {
+            		this.msgBuffer = this.msgBuffer.replace('START_IMAGE', '')
             	}
-            	else if(msg == 'endImg') {
-            		this.imgFlag = false;
-            		this.emit('image', this.imgBuffer);
-            		this.imgBuffer = '';
+            	else if(this.msgBuffer.includes('END_IMAGE')) {
+            		this.msgBuffer = this.msgBuffer.replace('END_IMAGE', '')
+            		this.emit('image', this.msgBuffer);
+            		this.msgBuffer = '';
             	}
-                this.msgBuffer = '';
-            }catch(err) {this.msgBuffer = ''};
+            }catch(err) {};
         });
 
         socket.on('end', () => {
@@ -62,7 +54,7 @@ function Socket(addr='127.0.0.1', port=12346) {
     };
 
     this.openSocket = function() {
-        this.server.listen(this.socketpath);
+        this.server.listen(this.socketpath.port, this.socketpath.address);
     }
 
     this.write = function(dataType, data) {

@@ -45,5 +45,5 @@ socket.on('image', (data) => {
 	// zlib.gunzip(body, function(err, dezipped) {
  //        io.emit('image', dezipped.toString());
  //    });
- 	io.emit('image', dezipped.toString());
+ 	io.emit('image', data);
 })

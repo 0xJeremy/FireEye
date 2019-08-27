@@ -15,8 +15,8 @@ class FireEye(Thread):
 	def open(self):
 		while True:
 			try:
-				self.client = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-				self.client.connect((self.addr, self.port, 0, 0))
+				self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				self.client.connect((self.addr, self.port))
 				return
 			except: continue
 
@@ -46,11 +46,9 @@ class FireEye(Thread):
 		self.client.send(data)
 
 	def writeImg(self, data):
-		self.client.send('startImg')
+		self.client.send('START_IMAGE'.encode())
 		self.client.send(data)
-		from time import sleep
-		sleep(0.1)
-		self.client.send('endImg')
+		self.client.send('END_IMAGE'.encode())
 
 	def exit(self):
 		self.client.send(dictToJson(msg).encode())

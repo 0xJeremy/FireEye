@@ -22,7 +22,7 @@ Its main features are:
 
 ### Speed
 
-Connections are made using TCP sockets and can pass information from processes extremely quickly and reliably.
+Connections are made using TCP sockets and can pass information from processes extremely quickly and reliably. FireEye operates using IPv4.
 
 ### Easy to use
 
@@ -41,21 +41,35 @@ socket.on('image', (data) => {
 })
 
 ```
+The example above can be used to receive entire images sent from Python.
+
+FireEye can also be used to send arbitrary information across the TCP socket. Any JSON serializable object can be sent:
+```javascript
+const FireEye = require('fireeye');
+
+var socket = new FireEye();
+
+var channel = 'channel_1';
+
+socket.write(channel, 'Hello from Node.js!');
+
+socket.on(channel, (data) => {
+	/* your code here */
+});
+```
+Any channel name can be used, except for `image` which is reserved for sending images from Python → Node.js
 
 ## How to use — Python
 
-The following is a simple example of how to use NodeSocket in Python:
+The following is a simple example of how to use FireEye in Python:
 ```python
 from FireEye import FireEye
 import cv2
 import base64
 
-socket = FireEye()
+socket = FireEye.FireEye()
 
 cap = cv2.VideoCapture(0) #Camera Number Here
-
-cap.set(3, 640)
-cap.set(4, 480)
 
 def encode_img(img):
 	success, encoded_img = cv2.imencode('.jpg', img)
@@ -65,3 +79,19 @@ ret, frame = cap.read()
 
 socket.writeImg(encode_img(frame))
 ```
+Please Note: Creating a FireEye socket in Python is a _blocking action_ and will not finish until the socket is opened.
+
+As shown above, arbitrary data can be sent across FireEye. Here is an example in Python that matches the one above:
+```python
+from FireEye import FireEye
+
+socket = FireEye.FireEye()
+
+channel = 'channel_1'
+
+socket.write(channel, 'Hello from Python!')
+
+response = socket.get(channel)
+```
+
+FireEye will automatically store the most recent piece of data received over a channel. This data is accessible via the `get` method. FireEye runs on a separate thread from the rest of your program and will therefore be constantly reading from the data socket.

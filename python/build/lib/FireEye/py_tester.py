@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
+import sys
 import cv2
 import base64
-import zlib
 from FireEye import FireEye
 
 socket = FireEye()
@@ -16,15 +16,13 @@ def encode_img(img):
 	success, encoded_img = cv2.imencode('.jpg', img)
 	return base64.b64encode(encoded_img)
 
-
-
 ret, frame = cap.read()
-count = 0
 
 socket.writeImg(encode_img(frame))
 
+# count = 0
 # while(True):
-	# ret, frame = cap.read()
-	# if count % 2:
-	# 	socket.writeImg(encode_img(frame))
-	# count += 1
+# 	ret, frame = cap.read()
+# 	if count % 2:
+# 		socket.writeImg(encode_img(frame))
+# 	count += 1

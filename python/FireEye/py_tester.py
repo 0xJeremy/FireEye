@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import sys
 import cv2
 import base64
 from FireEye import FireEye
@@ -21,7 +22,7 @@ socket.writeImg(encode_img(frame))
 
 # count = 0
 # while(True):
-	# ret, frame = cap.read()
-	# if count % 2:
-	# 	socket.writeImg(encode_img(frame))
-	# count += 1
+# 	ret, frame = cap.read()
+# 	if count % 2:
+# 		socket.writeImg(encode_img(frame))
+# 	count += 1

@@ -3,13 +3,17 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
-function Socket(addr='127.0.0.1', port=8080) {
+var RUN_IMG = 'BEGIN_IMAGE'
+var END_IMG = 'END_IMAGE'
+var STOP = 'STOP'
+
+function FireEye(addr='127.0.0.1', port=8080) {
     EventEmitter.call(this);
     this.net = require('net');
     this.socketpath = {
-    	'port': port,
-    	'family': 'IPv4',
-    	'address': addr
+        'port': port,
+        'family': 'IPv4',
+        'address': addr
     };
     this.msgBuffer = '';
     this.listener = null;
@@ -25,17 +29,24 @@ function Socket(addr='127.0.0.1', port=8080) {
         socket.on('data', (bytes) => {
             this.msgBuffer += bytes.toString();
             try {
-            	if(this.msgBuffer == 'stop') {
-            		this.listener.write(JSON.stringify({'stop': true}))
-            	}
-            	if(this.msgBuffer.includes('START_IMAGE')) {
-            		this.msgBuffer = this.msgBuffer.replace('START_IMAGE', '')
-            	}
-            	else if(this.msgBuffer.includes('END_IMAGE')) {
-            		this.msgBuffer = this.msgBuffer.replace('END_IMAGE', '')
-            		this.emit('image', this.msgBuffer);
-            		this.msgBuffer = '';
-            	}
+                if(this.msgBuffer == STOP) {
+                    this.write(STOP, 'True')
+                }
+                else if(this.msgBuffer.includes(RUN_IMG)) {
+                    this.msgBuffer = this.msgBuffer.replace(RUN_IMG, '')
+                }
+                else if(this.msgBuffer.includes(END_IMG)) {
+                    this.msgBuffer = this.msgBuffer.replace(END_IMG, '')
+                    this.emit('image', this.msgBuffer);
+                    this.msgBuffer = '';
+                }
+                else {
+                    var jsonData = JSON.parse(this.msgBuffer);
+                    this.emit(jsonData['type'], jsonData['data']);
+                    this.channels[jsonData['type']] = jsonData['data'];
+                    this.msgBuffer = '';
+                }
+                
             }catch(err) {};
         });
 
@@ -61,8 +72,12 @@ function Socket(addr='127.0.0.1', port=8080) {
         var msg = {
             'type': dataType,
             'data': data
-        }
-        this.listener.write(JSON.stringify(msg))
+        };
+        this.listener.write(JSON.stringify(msg));
+    }
+
+    this.get = function(dataType) {
+        return this.channels[dataType];
     }
 
     this.getSocket = function() {
@@ -73,6 +88,6 @@ function Socket(addr='127.0.0.1', port=8080) {
 
 }
 
-inherits(Socket, EventEmitter);
+inherits(FireEye, EventEmitter);
 
-module.exports = exports = Socket;
+module.exports = exports = FireEye;

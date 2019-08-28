@@ -3,8 +3,12 @@ from threading import Thread
 from json import dumps as dictToJson
 from json import loads as jsonToDict
 
+RUN_IMG = 'BEGIN_IMAGE'.encode()
+END_IMG = 'END_IMAGE'.encode()
+STOP = 'STOP'.encode()
+
 class FireEye(Thread):
-	def __init__(self, addr='127.0.0.1', port=12346):
+	def __init__(self, addr='127.0.0.1', port=8080):
 		super(FireEye, self).__init__()
 		self.addr = addr
 		self.port = port
@@ -26,29 +30,25 @@ class FireEye(Thread):
 			tmp += self.client.recv(size).decode().encode('utf-8')
 			try:
 				msg = jsonToDict(tmp)
-				if 'stop' in msg.keys():
+				if STOP in msg.keys():
 					return
-				if msg['type'] not in self.channels.keys():
-					self.registerChannel(msg['type'])
 				self.channels[msg['type']] = msg['data']
 				tmp = ''
 			except: continue
-
-	def registerChannel(self, channel):
-		self.channels[channel] = None
 
 	def get(self, channel):
 		if channel in self.channels.keys():
 			return self.channels[channel]
 		return None
 
-	def write(self, data):
-		self.client.send(data)
+	def write(self, channel, data):
+		msg = {'type': channel, 'data': data}
+		self.client.send(dictToJson(msg).encode())
 
 	def writeImg(self, data):
-		self.client.send('START_IMAGE'.encode())
+		self.client.send(RUN_IMG)
 		self.client.send(data)
-		self.client.send('END_IMAGE'.encode())
+		self.client.send(END_IMG)
 
 	def exit(self):
-		self.client.send(dictToJson(msg).encode())
+		self.client.send(STOP)

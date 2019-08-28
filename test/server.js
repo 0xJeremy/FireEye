@@ -1,7 +1,10 @@
 const express = require('express');
 const FireEye = require('../index.js');
 
-var socket = new FireEye();
+var socket = new FireEye(addr='127.0.0.1');
+
+console.log("FireEye address " + socket.getAddress() + " port " + socket.getPort());
+
 var app = express();
 
 //////////////////
@@ -10,7 +13,7 @@ var app = express();
 
 const PORT = process.env.PORT || 5000
 
-var server = app.listen(PORT, function() { console.log("Listening on port " + PORT)});
+var server = app.listen(PORT, function() { console.log("Webpage on port " + PORT)});
 var io = require('socket.io').listen(server);
 
 ///////////////////////

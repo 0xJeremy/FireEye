@@ -2,12 +2,13 @@
 
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
+var ip = require('ip')
 
 var RUN_IMG = 'BEGIN_IMAGE'
 var END_IMG = 'END_IMAGE'
 var STOP = 'STOP'
 
-function FireEye(addr='127.0.0.1', port=8080) {
+function FireEye(addr=ip.address(), port=8080) {
     EventEmitter.call(this);
     this.net = require('net');
     this.socketpath = {
@@ -82,6 +83,14 @@ function FireEye(addr='127.0.0.1', port=8080) {
 
     this.getSocket = function() {
         return this.listener;
+    }
+
+    this.getAddress = function() {
+        return this.socketpath.address
+    }
+
+    this.getPort = function() {
+        return this.socketpath.port
     }
 
     this.openSocket();

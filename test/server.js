@@ -1,12 +1,8 @@
 const express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-const net = require('net');
-const fs = require('fs');
 const FireEye = require('../index.js');
-const zlib = require('zlib');
 
-var socket = new FireEye()
+var socket = new FireEye();
+var app = express();
 
 //////////////////
 /// PARAMETERS ///
@@ -33,8 +29,6 @@ app.use(function (req, res, next) {
 /// FRONT-END ENDPOINTS ///
 ///////////////////////////
 
-app.use(bodyParser.json());
-app.use('/', express.static(__dirname + '/client'));
 app.use('/', express.static(__dirname + '/'));
 
 app.get('/', function(req, res) {
@@ -43,4 +37,4 @@ app.get('/', function(req, res) {
 
 socket.on('image', (data) => {
  	io.emit('image', data);
-})
+});

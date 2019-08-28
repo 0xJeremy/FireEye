@@ -3,12 +3,12 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
-function Socket(addr='127.0.0.1', port=12346) {
+function Socket(addr='127.0.0.1', port=8080) {
     EventEmitter.call(this);
     this.net = require('net');
     this.socketpath = {
     	'port': port,
-    	'family': 'IPv',
+    	'family': 'IPv4',
     	'address': addr
     };
     this.msgBuffer = '';

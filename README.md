@@ -44,7 +44,7 @@ socket.on('image', (data) => {
 
 ## How to use — Python
 
-The following is a simple example of how to use NodeSocket in Python:
+The following is a simple example of how to use FireEye in Python:
 ```python
 from FireEye import FireEye
 import cv2

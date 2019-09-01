@@ -2,7 +2,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
-var ip = require('ip')
+var ip = require('ip');
 
 var RUN_IMG = 'BEGIN_IMAGE'
 var END_IMG = 'END_IMAGE'

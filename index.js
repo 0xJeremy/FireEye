@@ -17,6 +17,7 @@ function FireEye(addr=ip.address(), port=8080) {
         'address': addr
     };
     this.msgBuffer = '';
+    this.channels = {};
     this.listener = null;
 
     this.server = this.net.createServer((socket) => {

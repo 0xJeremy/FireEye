@@ -13,6 +13,7 @@ pip install FireEye
 ```
 
 These libraries are developed in parallel, and designed to be used together.
+Please note: The Python side of this library is tested only with Python 3.
 
 ## Features
 
@@ -65,19 +66,14 @@ The following is a simple example of how to use FireEye in Python:
 ```python
 from FireEye import FireEye
 import cv2
-import base64
 
 socket = FireEye.FireEye()
 
 cap = cv2.VideoCapture(0) #Camera Number Here
 
-def encode_img(img):
-	success, encoded_img = cv2.imencode('.jpg', img)
-	return base64.b64encode(encoded_img)
-
 ret, frame = cap.read()
 
-socket.writeImg(encode_img(frame))
+socket.writeImg(frame)
 ```
 Please Note: Creating a FireEye socket in Python is a _blocking action_ and will not finish until the socket is opened.
 

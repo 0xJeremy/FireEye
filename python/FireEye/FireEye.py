@@ -1,5 +1,5 @@
 import socket
-from threading import Thread
+from threading import Thread, Lock
 import cv2
 import base64
 from json import dumps as dictToJson
@@ -16,6 +16,7 @@ class FireEye(Thread):
 		self.port = port
 		self.sending = False
 		self.channels = {}
+		self.lock = Lock()
 		self.open()
 		self.start()
 
@@ -53,15 +54,10 @@ class FireEye(Thread):
 		return base64.b64encode(encoded_img)
 
 	def writeImg(self, data):
-		if not self.sending:
-			self._writeImg(data)
-
-	def _writeImg(self, data):
-		self.sending = True
-		self.client.send(RUN_IMG)
-		self.client.send(self.encodeImg(data))
-		self.client.send(END_IMG)
-		self.sending = False
+		with self.lock:
+			self.client.send(RUN_IMG)
+			self.client.send(self.encodeImg(data))
+			self.client.send(END_IMG)
 
 	def exit(self):
 		self.client.send(STOP)

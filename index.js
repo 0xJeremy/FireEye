@@ -4,11 +4,15 @@ var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 var ip = require('ip');
 
-var RUN_IMG = 'BEGIN_IMAGE'
-var END_IMG = 'END_IMAGE'
-var STOP = 'STOP'
+var STOP = 'STOP';
+var ACK = 'ACK';
+var IMAGE = 'image';
+var NEWLINE = '\n';
+var MAXSIZE = 500000;
+var TIMEOUT = 2;
+var base64 = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$');
 
-function FireEye(addr=ip.address(), port=8080) {
+function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT) {
     EventEmitter.call(this);
     this.net = require('net');
     this.socketpath = {
@@ -16,6 +20,9 @@ function FireEye(addr=ip.address(), port=8080) {
         'family': 'IPv4',
         'address': addr
     };
+    this.maxSize = maxSize;
+    this.timeout = timeout;
+    this.lastData = new Date().getTime()
     this.msgBuffer = '';
     this.channels = {};
     this.listener = null;
@@ -30,26 +37,26 @@ function FireEye(addr=ip.address(), port=8080) {
 
         socket.on('data', (bytes) => {
             this.msgBuffer += bytes.toString();
+            if(this.msgBuffer.length > this.maxSize) {
+                console.log("Max Buffer Reached");
+                this.reset();
+                return;
+            }
             try {
-                if(this.msgBuffer == STOP) {
-                    this.write(STOP, 'True')
+                var jsonData = JSON.parse(this.msgBuffer.split(NEWLINE)[0]);
+                if(jsonData[STOP] != undefined) {
+                    this.write(STOP, 'True');
                 }
-                else if(this.msgBuffer.includes(RUN_IMG)) {
-                    this.msgBuffer = this.msgBuffer.replace(RUN_IMG, '')
-                }
-                else if(this.msgBuffer.includes(END_IMG)) {
-                    this.msgBuffer = this.msgBuffer.replace(END_IMG, '')
-                    this.emit('image', this.msgBuffer);
-                    this.msgBuffer = '';
-                }
-                else {
-                    var jsonData = JSON.parse(this.msgBuffer);
+                if(jsonData['type'] == IMAGE) {
+                    if(base64.test(jsonData['data'])) {
+                        this.emit(jsonData['type'], jsonData['data']);
+                    }
+                } else {
                     this.emit(jsonData['type'], jsonData['data']);
-                    this.channels[jsonData['type']] = jsonData['data'];
-                    this.msgBuffer = '';
                 }
-                
-            }catch(err) {};
+                this.channels[jsonData['type']] = jsonData['data'];
+                this.reset();
+            } catch(err) {};
         });
 
         socket.on('end', () => {
@@ -61,6 +68,12 @@ function FireEye(addr=ip.address(), port=8080) {
     //////////////////////////
     /// SOCKET INFORMATION ///
     //////////////////////////
+
+    this.reset = function() {
+        this.msgBuffer = '';
+        this.lastData = new Date().getTime();
+        this.write(ACK, 'True');
+    }
 
     this.getAddress = function() {
         return this.server.address();
@@ -94,7 +107,20 @@ function FireEye(addr=ip.address(), port=8080) {
         return this.socketpath.port
     }
 
+    this.ack = function() {
+        this.write('ack', 'True')
+    } 
+
     this.openSocket();
+
+    setInterval( () => {
+        if(((new Date().getTime() - this.lastData) / 1000) > this.timeout) {
+            if(this.msgBuffer == '') {
+                try { this.reset() }
+                catch(err) {}
+            }
+        }
+    }, this.timeout);
 
 }
 

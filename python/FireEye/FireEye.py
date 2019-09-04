@@ -5,16 +5,18 @@ import base64
 from json import dumps as dictToJson
 from json import loads as jsonToDict
 
-RUN_IMG = 'BEGIN_IMAGE'.encode()
-END_IMG = 'END_IMAGE'.encode()
 STOP = 'STOP'.encode()
+ACK = 'ACK'
+NEWLINE = '\n'.encode()
+IMG_MSG_S = '{"type": "image", "data": "'.encode()
+IMG_MSG_E = '"}'.encode()
 
 class FireEye(Thread):
 	def __init__(self, addr='127.0.0.1', port=8080):
 		super(FireEye, self).__init__()
 		self.addr = addr
 		self.port = port
-		self.sending = False
+		self.canWrite = True
 		self.channels = {}
 		self.lock = Lock()
 		self.open()
@@ -31,12 +33,15 @@ class FireEye(Thread):
 	def run(self, size=256):
 		tmp = ''
 		while True:
-			tmp += self.client.recv(size).decode().encode('utf-8')
+			tmp += self.client.recv(size).decode()
 			try:
 				msg = jsonToDict(tmp)
 				if STOP in msg.keys():
+					self.client.close()
 					return
 				self.channels[msg['type']] = msg['data']
+				if(msg['type'] == ACK):
+					self.canWrite = True
 				tmp = ''
 			except: continue
 
@@ -46,8 +51,11 @@ class FireEye(Thread):
 		return None
 
 	def write(self, channel, data):
-		msg = {'type': channel, 'data': data}
-		self.client.send(dictToJson(msg).encode())
+		with self.lock:
+			if self.canWrite:
+				self.canWrite = False
+				msg = {'type': channel, 'data': data}
+				self.client.sendall(dictToJson(msg).encode() + NEWLINE)
 
 	def encodeImg(self, img):
 		success, encoded_img = cv2.imencode('.png', img)
@@ -55,9 +63,10 @@ class FireEye(Thread):
 
 	def writeImg(self, data):
 		with self.lock:
-			self.client.send(RUN_IMG)
-			self.client.send(self.encodeImg(data))
-			self.client.send(END_IMG)
+			if self.canWrite:
+				self.canWrite = False
+				msg = IMG_MSG_S + self.encodeImg(data) + IMG_MSG_E
+				self.client.sendall(msg + NEWLINE)
 
 	def exit(self):
 		self.client.send(STOP)

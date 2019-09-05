@@ -50,23 +50,29 @@ class FireEye(Thread):
 			return self.channels[channel]
 		return None
 
-	def write(self, channel, data):
-		with self.lock:
-			if self.canWrite:
-				self.canWrite = False
-				msg = {'type': channel, 'data': data}
-				self.client.sendall(dictToJson(msg).encode() + NEWLINE)
-
 	def encodeImg(self, img):
 		success, encoded_img = cv2.imencode('.png', img)
 		return base64.b64encode(encoded_img)
 
-	def writeImg(self, data):
+	def writeLock(self, channel, data):
 		with self.lock:
-			if self.canWrite:
-				self.canWrite = False
-				msg = IMG_MSG_S + self.encodeImg(data) + IMG_MSG_E
-				self.client.sendall(msg + NEWLINE)
+			self.write(channel, data)
+
+	def write(self, channel, data):
+		if self.canWrite:
+			self.canWrite = False
+			msg = {'type': channel, 'data': data}
+			self.client.sendall(dictToJson(msg).encode() + NEWLINE)
+
+	def writeImgLock(self, data):
+		with self.lock:
+			self.writeImg(data)
+
+	def writeImg(self, data):
+		if self.canWrite:
+			self.canWrite = False
+			msg = IMG_MSG_S + self.encodeImg(data) + IMG_MSG_E
+			self.client.sendall(msg + NEWLINE)
 
 	def exit(self):
 		self.client.send(STOP)

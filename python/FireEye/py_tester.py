@@ -16,8 +16,8 @@ ret, frame = cap.read()
 socket.writeImg(frame)
 
 count = 0
-# while(True):
-# 	ret, frame = cap.read()
-# 	if count % 2:
-# 		socket.writeImg(frame)
-# 	count += 1
+while(True):
+	ret, frame = cap.read()
+	if count % 2:
+		socket.writeImg(frame)
+	count += 1

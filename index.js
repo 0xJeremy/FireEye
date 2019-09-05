@@ -8,8 +8,8 @@ var STOP = 'STOP';
 var ACK = 'ACK';
 var IMAGE = 'image';
 var NEWLINE = '\n';
-var MAXSIZE = 500000;
-var TIMEOUT = 2;
+var MAXSIZE = 1500000;
+var TIMEOUT = 0;
 var base64 = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$');
 
 function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT) {
@@ -22,7 +22,7 @@ function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT)
     };
     this.maxSize = maxSize;
     this.timeout = timeout;
-    this.lastData = new Date().getTime()
+    this.lastData = new Date().getTime();
     this.msgBuffer = '';
     this.channels = {};
     this.listener = null;
@@ -38,7 +38,6 @@ function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT)
         socket.on('data', (bytes) => {
             this.msgBuffer += bytes.toString();
             if(this.msgBuffer.length > this.maxSize) {
-                console.log("Max Buffer Reached");
                 this.reset();
                 return;
             }
@@ -60,7 +59,11 @@ function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT)
         });
 
         socket.on('end', () => {
-            this.emit('disconnected');
+            this.emit('end');
+        });
+
+        socket.on('error', (err) => {
+            this.emit('error', err);
         });
 
     });
@@ -100,11 +103,11 @@ function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT)
     }
 
     this.getAddress = function() {
-        return this.socketpath.address
+        return this.socketpath.address;
     }
 
     this.getPort = function() {
-        return this.socketpath.port
+        return this.socketpath.port;
     }
 
     this.ack = function() {
@@ -113,14 +116,16 @@ function FireEye(addr=ip.address(), port=8080, maxSize=MAXSIZE, timeout=TIMEOUT)
 
     this.openSocket();
 
-    setInterval( () => {
-        if(((new Date().getTime() - this.lastData) / 1000) > this.timeout) {
-            if(this.msgBuffer == '') {
-                try { this.reset() }
-                catch(err) {}
+    if(this.timeout > 0) {
+        setInterval( () => {
+            if(((new Date().getTime() - this.lastData) / 1000) > this.timeout) {
+                if(this.msgBuffer == '') {
+                    try { this.reset() }
+                    catch(err) {}
+                }
             }
-        }
-    }, this.timeout);
+        }, this.timeout);
+    }
 
 }
 

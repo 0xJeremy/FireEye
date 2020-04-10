@@ -1,5 +1,7 @@
 # FireEye
 
+# THIS PROJECT IS NO LONGER MAINTAINED. USE [SOCKET.ENGINE](https://github.com/0xJeremy/socket.engine) INSTEAD.
+
 ## Installation
 
 Node.js installation:

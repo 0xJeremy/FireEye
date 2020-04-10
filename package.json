@@ -1,6 +1,6 @@
 {
   "name": "fireeye",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A video over TCP client",
   "main": "index.js",
   "scripts": {
